@@ -1,0 +1,33 @@
+version: "3.3"
+
+services:
+  symfony:
+    image: webdevops/php-apache-dev:8.1-alpine
+    container_name: symfony
+    restart: unless-stopped
+    user: application
+    environment:
+      - WEB_ALIAS_DOMAIN=localhost
+      - WEB_DOCUMENT_ROOT=/app/public
+      - DB_HOST=mysql_symfony:3306
+      - SERVICE_SUPERVISOR_USER=root
+      - PHP_EXTENSION_DEBUG=1
+    volumes:
+      - ./:/app
+    ports:
+      - "80:80"
+      - "443:443"
+    links:
+      - mysql_symfony
+  mysql_symfony:
+    image: mariadb:10
+    container_name: mysql_symfony
+    restart: unless-stopped
+    ports:
+      - "3336:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=symfony
+volumes:
+  db-data:
+    external: false

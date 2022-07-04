@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <div class="main-container">
+        <div class="tab-header">
+            <h1>Youtube Channel Subscriptions</h1>
+        </div>
+        <div class="tab-content">
+            {% for key, channel in channels %}
+                <div class="content">
+                    <div class="image">
+                        <img src="{{ channel.img }}">
+                    </div>
+                    <div class="text-content">
+                        <strong>Name: </strong>
+                        {{ key }}
+                    </div>
+                    <div class="text-content">
+                        <strong>Public since: </strong>
+                        {{ channel.publishedAt|date }}
+                    </div>
+                    <div class="text-content">
+                        <strong>Number of subscribers: </strong>
+                        {{ channel.subscribers|number_format }}
+                    </div>
+                    <div class="text-content">
+                        <strong>Videos count: </strong>
+                        {{ channel.videos|number_format }}
+                    </div>
+                    <div class="text-content">
+                        <strong>Views total count: </strong>
+                        {{ channel.views|number_format }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
