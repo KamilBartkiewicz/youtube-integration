@@ -7,8 +7,6 @@ use Google\Service\YouTube\SubscriptionListResponse;
 use Google_Service_YouTube;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Cache\Adapter\FilesystemAdapter;
-use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
 
@@ -19,12 +17,10 @@ class YoutubeService
     private Client $Client;
     private Session $Session;
     private LoggerInterface $Logger;
-    private FilesystemAdapter $Cache;
 
     public function __construct(RequestStack $RequestStack, LoggerInterface $Logger)
     {
         $this->Client = new Client();
-        $this->Cache  = new FilesystemAdapter();
         $this->Logger = $Logger;
         try {
             $this->Client->setAuthConfig('../config/client_secret.json');
@@ -39,24 +35,24 @@ class YoutubeService
 
     /**
      * @return array
-     * @throws InvalidArgumentException
      */
     public function getChannels(): array
     {
-        return $this->Cache->get($this->Session->get(self::ACCESS_TOKEN)['access_token'], function () {
-            $this->Client->setAccessToken($this->Session->get(self::ACCESS_TOKEN));
-            $Youtube = new Google_Service_YouTube($this->Client);
-            $Subscriptions = $Youtube->subscriptions->listSubscriptions('snippet,contentDetails', ['mine' => 'mine']);
-            if (!empty($Subscriptions->getItems())) {
-                return $this->prepareSubscribedChannelsData(
-                    $Youtube->channels->listChannels(
-                        'snippet,contentDetails,statistics',
-                        ['id' => $this->getChannelsIdAsStings($Subscriptions)]
-                    )->getItems()
-                );
-            }
-            return [];
-        });
+        $this->Client->setAccessToken($this->Session->get(self::ACCESS_TOKEN));
+        $Youtube = new Google_Service_YouTube($this->Client);
+        $Subscriptions = $Youtube->subscriptions->listSubscriptions(
+            'snippet,contentDetails',
+            ['mine' => 'mine', 'maxResults' => 50]
+        );
+        if (!empty($Subscriptions->getItems())) {
+            return $this->prepareSubscribedChannelsData(
+                $Youtube->channels->listChannels(
+                    'snippet,contentDetails,statistics',
+                    ['id' => $this->getChannelsIdAsStings($Subscriptions)]
+                )->getItems()
+            );
+        }
+        return [];
     }
 
     /**
